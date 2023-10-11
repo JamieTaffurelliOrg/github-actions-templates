@@ -1,0 +1,34 @@
+on:
+  workflow_call:
+    inputs:
+      terraform-version:
+        required: true
+        type: string
+      terragrunt-version:
+        required: true
+        type: string
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: ${{ inputs.terraform-version }}
+        terraform_wrapper: false
+
+    - name: Setup Terragrunt
+      uses: autero1/action-terragrunt@v1.1.0
+      with:
+        terragrunt_version: ${{ inputs.terragrunt-version }}
+
+    - name: Run pre-commit
+      uses: pre-commit/action@v3.0.0
+      with:
+        extra_args: -v --all-files

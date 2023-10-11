@@ -1,0 +1,40 @@
+on:
+  workflow_call:
+    inputs:
+      working-dir:
+        required: false
+        type: string
+        default: '.'
+      output-file:
+        required: false
+        type: string
+        default: 'README.md'
+      output-method:
+        required: false
+        type: string
+        default: 'inject'
+      git-push:
+        required: true
+        type: string
+        default: 'true'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Render terraform docs and push changes back to PR
+      uses: terraform-docs/gh-actions@main
+      with:
+        working-dir: .
+        output-file: README.md
+        output-method: inject
+        git-push: "true"
