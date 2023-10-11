@@ -1,0 +1,57 @@
+on:
+  workflow_call:
+    inputs:
+      tag-prefix:
+        required: false
+        type: string
+        default: ''
+      major-pattern:
+        required: false
+        type: string
+        default: '(MAJOR)'
+      minor-pattern:
+        required: false
+        type: string
+        default: '(MINOR)'
+      format:
+        required: true
+        type: string
+        default: '${major}.${minor}.${patch}'
+      environment:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      GH_TOKEN:
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  release:
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Version
+      id: version
+      uses: paulhatch/semantic-version@v4
+      with:
+        tag_prefix: ${{ inputs.tag-prefix }}
+        major_pattern: ${{ inputs.major-pattern }}
+        minor_pattern: ${{ inputs.minor-pattern }}
+        format: ${{ inputs.format }}
+        bump_each_commit: false
+
+    - name: Release Module
+      uses: ncipollo/release-action@v1
+      with:
+        generateReleaseNotes: true
+        tag: ${{ steps.version.outputs.version }}
+        token: ${{ secrets.GH_TOKEN }}

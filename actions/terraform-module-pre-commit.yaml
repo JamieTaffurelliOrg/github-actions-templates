@@ -1,0 +1,52 @@
+on:
+  workflow_call:
+    inputs:
+      terraform-version:
+        required: true
+        type: string
+      go-version:
+        required: true
+        type: string
+
+permissions: read-all
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: ${{ inputs.terraform-version }}
+        terraform_wrapper: false
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: ${{ inputs.go-version }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: Set up Tflint
+      uses: lablabs/setup-tflint@v2
+
+    - name: install packages
+      run: |
+        curl -L "$(curl -s https://api.github.com/repos/tenable/terrascan/releases/latest | grep -o -E https://.+?_Linux_x86_64.tar.gz)" > terrascan.tar.gz
+        tar -xf terrascan.tar.gz terrascan && rm terrascan.tar.gz
+        install terrascan /usr/local/bin && rm terrascan
+        go install github.com/aquasecurity/tfsec/cmd/tfsec@latest
+        pip install checkov
+
+    - name: Run pre-commit
+      uses: pre-commit/action@v3.0.0
+      with:
+        extra_args: -v --all-files
