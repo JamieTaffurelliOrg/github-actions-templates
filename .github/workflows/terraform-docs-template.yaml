@@ -32,5 +32,5 @@ jobs:
       with:
         working-dir: ${{ inputs.working-dir }}
         output-file: ${{ inputs.output-file }}
-        output-method: ${{ output-method }}
+        output-method: ${{ inputs.output-method }}
         git-push: ${{ inputs.git-push }}
